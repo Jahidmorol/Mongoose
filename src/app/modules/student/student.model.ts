@@ -6,8 +6,6 @@ import {
   TStudent,
   TUserName,
 } from './student.interface';
-import bcrypt from 'bcrypt';
-import config from '../../config';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -77,10 +75,11 @@ export const studentSchema = new Schema<TStudent, StudentModel>(
       required: [true, 'Student ID is required'],
       unique: true,
     },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      maxlength: [20, 'Password can not be more than 20 characters'],
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'user is required'],
+      unique: true,
+      ref: 'User',
     },
     name: {
       type: userNameSchema,
@@ -123,10 +122,13 @@ export const studentSchema = new Schema<TStudent, StudentModel>(
     guardian: guardianSchema,
     localGuardian: localGuardianSchema,
     profileImg: { type: 'String' },
-    isActive: {
-      type: 'String',
-      enum: ['active', 'blocked'],
-      default: 'active',
+    admissionSemester: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicSemester',
+    },
+    academicDepartment: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicDepartment',
     },
     isDeleted: {
       type: Boolean,
@@ -143,21 +145,6 @@ export const studentSchema = new Schema<TStudent, StudentModel>(
 // virtual
 studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
-});
-
-studentSchema.pre('save', async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this;
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds),
-  );
-  next();
-});
-
-studentSchema.post('save', async function (doc, next) {
-  doc.set('password', undefined);
-  next();
 });
 
 studentSchema.pre('find', async function (next) {
@@ -179,12 +166,5 @@ studentSchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Student.findOne({ id });
   return existingUser;
 };
-
-//creating a custom instance method
-// studentSchema.methods.isUserExists = async function (id: string) {
-//   const existingUser = await Student.findOne({ id });
-
-//   return existingUser;
-// };
 
 export const Student = model<TStudent, StudentModel>('Student', studentSchema);
