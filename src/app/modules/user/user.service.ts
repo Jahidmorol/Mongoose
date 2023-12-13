@@ -6,9 +6,18 @@ import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import { generateStudentId } from './user.utils';
+import {
+  generateAdminId,
+  generateFacultyId,
+  generateStudentId,
+} from './user.utils';
 import appError from '../../errors/appError';
 import httpStatus from 'http-status';
+import { TFaculty } from '../Faculty/faculty.interface';
+import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
+import { Faculty } from '../Faculty/faculty.model';
+import { TAdmin } from '../Admin/admin.interface';
+import { Admin } from '../Admin/admin.model';
 
 const createStudentIntoDb = async (password: string, payload: TStudent) => {
   const userData: Partial<TUser> = {};
@@ -62,6 +71,107 @@ const createStudentIntoDb = async (password: string, payload: TStudent) => {
   }
 };
 
+const createFacultyIntoDb = async (password: string, payload: TFaculty) => {
+  const userData: Partial<TUser> = {};
+
+  //set user role
+  userData.role = 'faculty';
+
+  //if password is not provided
+  userData.password = password || (config.default_password as string);
+
+  // find academic semester info
+  const academicDepartment = await AcademicDepartment.findById(
+    payload.academicDepartment,
+  );
+
+  if (!academicDepartment) {
+    throw new appError(400, 'Academic department not found');
+  }
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    //set auto generated id
+    userData.id = await generateFacultyId();
+
+    //create a new user
+    const newUser = await User.create([userData], { session });
+    if (!newUser.length) {
+      throw new appError(httpStatus.BAD_REQUEST, 'Failed to create user');
+    }
+
+    // set id , _id as user
+    payload.id = newUser[0].id;
+    payload.user = newUser[0]._id;
+
+    //create a new student
+    const newFaculty = await Faculty.create([payload], { session });
+
+    if (!newFaculty.length) {
+      throw new appError(httpStatus.BAD_REQUEST, 'Failed to create Faculty');
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return newFaculty;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error('Failed to create Faculty');
+  }
+};
+
+const createAdminIntoDb = async (password: string, payload: TAdmin) => {
+  const userData: Partial<TUser> = {};
+
+  //set user role
+  userData.role = 'admin';
+
+  //if password is not provided
+  userData.password = password || (config.default_password as string);
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    //set auto generated id
+    userData.id = await generateAdminId();
+
+    //create a new user
+    const newUser = await User.create([userData], { session });
+    if (!newUser.length) {
+      throw new appError(httpStatus.BAD_REQUEST, 'Failed to create admin');
+    }
+
+    // set id , _id as user
+    payload.id = newUser[0].id;
+    payload.user = newUser[0]._id;
+
+    //create a new student
+    const newAdmin = await Admin.create([payload], { session });
+
+    if (!newAdmin.length) {
+      throw new appError(httpStatus.BAD_REQUEST, 'Failed to create Admin');
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return newAdmin;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error('Failed to create Admin');
+  }
+};
+
 export const userService = {
   createStudentIntoDb,
+  createFacultyIntoDb,
+  createAdminIntoDb,
 };
