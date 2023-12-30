@@ -24,6 +24,8 @@ const createStudentIntoDb = async (password: string, payload: TStudent) => {
 
   //set student role
   userData.role = 'student';
+  // set student email
+  userData.email = payload.email;
 
   //if password is not provided
   userData.password = password || (config.default_password as string);
@@ -68,14 +70,17 @@ const createStudentIntoDb = async (password: string, payload: TStudent) => {
     await session.abortTransaction();
     await session.endSession();
     throw new Error('Failed to create student');
+    // throw error;
   }
 };
 
 const createFacultyIntoDb = async (password: string, payload: TFaculty) => {
   const userData: Partial<TUser> = {};
 
-  //set user role
+  //set faculty role
   userData.role = 'faculty';
+  // set faculty email
+  userData.email = payload.email;
 
   //if password is not provided
   userData.password = password || (config.default_password as string);
@@ -128,8 +133,10 @@ const createFacultyIntoDb = async (password: string, payload: TFaculty) => {
 const createAdminIntoDb = async (password: string, payload: TAdmin) => {
   const userData: Partial<TUser> = {};
 
-  //set user role
+  //set admin role
   userData.role = 'admin';
+  // set admin email
+  userData.email = payload.email;
 
   //if password is not provided
   userData.password = password || (config.default_password as string);
