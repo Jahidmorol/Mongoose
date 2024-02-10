@@ -11,12 +11,10 @@ const router = express.Router();
 
 router.post(
   '/create-student',
-  auth('admin'),
+  // auth('admin'),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
-    // console.log('From route req.body--->', req.body);
     req.body = JSON.parse(req.body.data);
-    // console.log('From route req.body.data--->', req.body.data);
     next();
   },
   validateRequest(studentValidations.createStudentValidationSchema),

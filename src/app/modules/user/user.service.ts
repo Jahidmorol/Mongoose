@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import config from '../../config';
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
@@ -18,8 +19,13 @@ import { AcademicDepartment } from '../academicDepartment/academicDepartment.mod
 import { Faculty } from '../Faculty/faculty.model';
 import { TAdmin } from '../Admin/admin.interface';
 import { Admin } from '../Admin/admin.model';
+import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 
-const createStudentIntoDb = async (password: string, payload: TStudent) => {
+const createStudentIntoDb = async (
+  file: any,
+  password: string,
+  payload: TStudent,
+) => {
   const userData: Partial<TUser> = {};
 
   //set student role
@@ -45,6 +51,13 @@ const createStudentIntoDb = async (password: string, payload: TStudent) => {
       admissionSemester as TAcademicSemester,
     );
 
+    const imageName = `${userData.id}${payload?.name?.firstName}`;
+    const path = file?.path;
+
+    const { secure_url } = (await sendImageToCloudinary(imageName, path)) as {
+      secure_url: string;
+    };
+
     //create a new user
     const newUser = await User.create([userData], { session });
     if (!newUser.length) {
@@ -54,6 +67,7 @@ const createStudentIntoDb = async (password: string, payload: TStudent) => {
     // set id , _id as user
     payload.id = newUser[0].id;
     payload.user = newUser[0]._id;
+    payload.profileImg = secure_url;
 
     //create a new student
     const newStudent = await Student.create([payload], { session });
