@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post(
   '/create-student',
-  // auth('admin'),
+  auth('admin'),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
