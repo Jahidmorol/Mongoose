@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import appError from '../../errors/appError';
-import { AcademicSemester } from '../academicSemester/accademicSemester.model';
+import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import { TSemesterRegistration } from './semesterRegistration.interface';
 import { SemesterRegistration } from './semesterRegistration.mode';
 import QueryBuilder from '../../builder/QueryBuilder';
