@@ -8,7 +8,7 @@ const createOfferedCourse = catchAsync(async (req, res) => {
     req.body,
   );
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: httpStatus.CREATED,
     message: 'Offered Course is created successfully !',
     data: result,
   });
@@ -21,9 +21,9 @@ const getAllOfferedCourses = catchAsync(async (req, res) => {
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
-    success: true,
     message: 'OfferedCourses retrieved successfully !',
-    data: result,
+    meta: result.meta,
+    data: result.result,
   });
 });
 
