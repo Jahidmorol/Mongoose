@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AcademicFacultyServices } from './academicFaculty.service';
@@ -8,17 +9,22 @@ const createAcademicFaculty = catchAsync(async (req, res) => {
   );
 
   sendResponse(res, {
+    statusCode: httpStatus.CREATED,
     message: 'Academic faculty is created successfully',
     data: result,
   });
 });
 
 const getAllAcademicFaculties = catchAsync(async (req, res) => {
-  const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB();
+  const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB(
+    req.query,
+  );
 
   sendResponse(res, {
+    statusCode: httpStatus.OK,
     message: 'Academic faculties are retrieved successfully',
-    data: result,
+    meta: result.meta,
+    data: result.result,
   });
 });
 
@@ -28,6 +34,7 @@ const getSingleAcademicFaculty = catchAsync(async (req, res) => {
     await AcademicFacultyServices.getSingleAcademicFacultyFromDB(facultyId);
 
   sendResponse(res, {
+    statusCode: httpStatus.OK,
     message: 'Academic faculty is retrieved successfully',
     data: result,
   });
